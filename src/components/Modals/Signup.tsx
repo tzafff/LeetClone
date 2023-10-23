@@ -1,29 +1,62 @@
-import { authModalState } from '@/atoms/authModalAtom';
-import React from 'react';
-import { useSetRecoilState } from 'recoil';
+import { authModalState } from "@/atoms/authModalAtom";
+import React from "react";
+import { useSetRecoilState } from "recoil";
+import { useEffect, useState } from "react";
+import { auth } from "@/firebase/firebase";
+import { useCreateUserWithEmailAndPassword } from "react-firebase-hooks/auth";
+import router, { useRouter } from "next/router";
 
-type SignUpProps = {
-    
-};
+type SignUpProps = {};
 
-const SignUp:React.FC<SignUpProps> = () => {
-
+const SignUp: React.FC<SignUpProps> = () => {
   const setAuthModalState = useSetRecoilState(authModalState);
-  const handleClick = () =>{
-    setAuthModalState((prev) => ({...prev, type: 'login'}));
-  }
+  
+  const handleClick = () => {
+    setAuthModalState((prev) => ({ ...prev, type: "login" }));
+  };
+  
+  const [inputs, setInputs] = useState({
+    email: "",
+    displayName: "",
+    password: "",
+  });
 
-    return (
-        <form className="space-y-6 px-6 pb-4">
+  const router = useRouter();
+  
+  const [createUserWithEmailAndPassword, user, loading, error] = useCreateUserWithEmailAndPassword(auth);
+
+  const handleChangeInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
+  };
+
+  const handleRegister = async (e: React.FormEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    if(!inputs.email || !inputs.password || !inputs.displayName ) return alert("Please fill All Fields")
+    try {
+      const newUser = await createUserWithEmailAndPassword(inputs.email, inputs.password);
+      if(!newUser) return;
+      router.push('/')
+    } catch (error:any) {
+      alert(error.message)
+    }
+  };
+
+  useEffect(() => {
+    if(error) alert(error.message)
+  },[error])
+
+  return (
+    <form className="space-y-6 px-6 pb-4" onSubmit={handleRegister}>
       <h3 className="text-xl font-medium text-white">Register to LeetClone</h3>
       <div>
         <label
           htmlFor="email"
           className="text-sm font-medium block mb-2 text-gray-300"
         >
-        Email
+          Email
         </label>
         <input
+          onChange={handleChangeInput}
           type="email"
           name="email"
           id="email"
@@ -42,6 +75,7 @@ const SignUp:React.FC<SignUpProps> = () => {
           Display Name
         </label>
         <input
+          onChange={handleChangeInput}
           type="displayName"
           name="displayName"
           id="displayName"
@@ -57,9 +91,10 @@ const SignUp:React.FC<SignUpProps> = () => {
           htmlFor="password"
           className="text-sm font-medium block mb-2 text-gray-300"
         >
-            Password
+          Password
         </label>
         <input
+          onChange={handleChangeInput}
           type="password"
           name="password"
           id="password"
@@ -76,16 +111,22 @@ const SignUp:React.FC<SignUpProps> = () => {
                 text-sm px-5 py-2.5 text-center bg-brand-orange hover:bg-brand-orange-s
             "
       >
-        Register
+        {/* The loading state should automatically switch to false by the "react-firebase-hooks/auth" library.*/}
+        { loading ? "Registering" : "Register"}
+        
       </button>
-      
+
       <div className="text-sm font-medium text-gray-300">
         Already have an account?{" "}
-        <a href="#" className="text-blue-700 hover:underline" onClick={handleClick}>
-            Log in
+        <a
+          href="#"
+          className="text-blue-700 hover:underline"
+          onClick={handleClick}
+        >
+          Log in
         </a>
       </div>
     </form>
-    )
-}
+  );
+};
 export default SignUp;
