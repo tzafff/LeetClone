@@ -79,7 +79,7 @@ const Topbar: React.FC<TopbarProps> = ({ problemPage }) => {
             {problemPage && <Timer />}
             {user && (
               <div className="cursor-pointer group relative">
-                <img
+                <Image
                   src="/avatar.png"
                   alt="Avatar"
                   width={30}
