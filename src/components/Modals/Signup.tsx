@@ -1,5 +1,5 @@
 import { authModalState } from "@/atoms/authModalAtom";
-import React from "react";
+import React, { FormEvent } from "react";
 import { useSetRecoilState } from "recoil";
 import { useEffect, useState } from "react";
 import { auth } from "@/firebase/firebase";
@@ -29,7 +29,7 @@ const SignUp: React.FC<SignUpProps> = () => {
     setInputs((prev) => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleRegister = async (e: React.FormEvent<HTMLInputElement>) => {
+  const handleRegister = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if(!inputs.email || !inputs.password || !inputs.displayName ) return alert("Please fill All Fields")
     try {
