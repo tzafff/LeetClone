@@ -93,7 +93,7 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
 
     const handleDislike =async () => {
         if(!user){
-            toast.error("You must be logged in to like a problem", {position: "top-left", theme:"dark"})
+            toast.error("You must be logged in to dislike a problem", {position: "top-left", theme:"dark"})
             return;
         }
         if(updating) return;
@@ -137,6 +137,32 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
         });
         setUpdating(false);
     }
+
+    const handleStar = async ( ) => {
+        if(!user){
+            toast.error("You must be logged in to star a problem", {position: "top-left", theme:"dark"})
+            return;
+        }
+        if(updating) return;
+        setUpdating(true);
+
+        if(!starred){
+            const userRef = doc(firestore, "users", user.uid);
+            await updateDoc(userRef, {
+                starredProblems: arrayUnion(problem.id)
+            })
+            setData((prev) => ({ ...prev, starred: true}));
+        } else {
+            const userRef = doc(firestore, "users", user.uid);
+            await updateDoc(userRef, {
+                starredProblems: arrayRemove(problem.id)
+            })
+            setData((prev) => ({ ...prev, starred: false}));
+        }
+
+        setUpdating(false);
+    }
+
     return (
         <div className="bg-dark-layer-1">
             {/* TAB */}
@@ -164,9 +190,11 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
                             <div className={`${problemDifficultyClass} inline-block rounded-[21px] bg-opacity-[.15] px-2.5 py-1 text-xs font-medium capitalize `}>
                                 {currentProblem.difficulty}
                             </div>
-                            <div className="rounded p-[3px] ml-4 text-lg transition-colors duration-200 text-green-s text-dark-green-s">
+                            {solved &&(
+                                <div className="rounded p-[3px] ml-4 text-lg transition-colors duration-200 text-green-s text-dark-green-s">
                                 <BsCheck2Circle />
                             </div>
+                            )}
                             <div className="flex items-center cursor-pointer hover:bg-dark-fill-3 space-x-1 rounded p-[3px]  ml-4 text-lg transition-colors duration-200 text-dark-gray-6"
                                 onClick={handleLike}
                             >
@@ -181,8 +209,10 @@ const ProblemDescription: React.FC<ProblemDescriptionProps> = ({ problem }) => {
                                 {updating && <AiOutlineLoading3Quarters className="animate-spin" /> }
                                 <span className="text-xs">{currentProblem.dislikes}</span>
                             </div>
-                            <div className="cursor-pointer hover:bg-dark-fill-3  rounded p-[3px]  ml-4 text-xl transition-colors duration-200 text-green-s text-dark-gray-6 ">
-                                <TiStarOutline />
+                            <div className="cursor-pointer hover:bg-dark-fill-3  rounded p-[3px]  ml-4 text-xl transition-colors duration-200 text-green-s text-dark-gray-6 " onClick={handleStar}>
+                                {starred && !updating && <AiFillStar className="text-dark-yellow" />}
+                                {!starred && !updating && <TiStarOutline />}
+                                {updating && <AiOutlineLoading3Quarters className="animate-spin" /> }
                             </div>
                         </div>
                         )}
