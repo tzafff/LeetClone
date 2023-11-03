@@ -24,7 +24,8 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
     const [activeTestCaseId, setActiveTestCaseId] = React.useState<number>(0);
     const [user] = useAuthState(auth);
     const {query: { pid } } = useRouter();
-    
+    const [userCode, setUserCode] = useState<string>(problem.starterCode);
+
     const handleSubmit = async () => {
         if(!user){
             toast.error("Please login to submit your code",{position: "top-center", autoClose:300, theme:"dark"})
@@ -70,9 +71,18 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
         }
     }
 
-    const [userCode, setUserCode] = useState<string>(problem.starterCode);
+    useEffect(() => {
+        const code = localStorage.getItem(`code-${pid}`)
+        if(user){
+            setUserCode(code ? JSON.parse(code) : problem.starterCode);
+        } else {
+            setUserCode(problem.starterCode);
+        }
+    },[pid,user,problem.starterCode])
+    
     const onChange = (value: string) => {
         setUserCode(value);
+        localStorage.setItem(`code-${pid}`,JSON.stringify(value));
     };
 
     return (
@@ -82,7 +92,7 @@ const Playground: React.FC<PlaygroundProps> = ({ problem, setSuccess, setSolved 
         <Split className='h-[calc(100vh-94px)]' direction='vertical' sizes={[60, 40]} minSize={60}>
             <div className="w-full overflow-auto">
                 <CodeMirror
-                    value={problem.starterCode}
+                    value={userCode}
                     theme={vscodeDark}
                     onChange={onChange}
                     extensions={[javascript()]}
